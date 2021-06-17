@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using IronPdf;
@@ -22,27 +23,19 @@ namespace WebApplication1.Controllers
         public IActionResult Index()
         {
             // Set these variables.
-            var filePath = @"C:\.........\WebApplication1\example1.pdf";
-            var licenseKey = "IRONP........020";
+            var rootFolder = Directory.GetCurrentDirectory();
+            var inputFilePath = Path.GetFullPath(Path.Combine(rootFolder, "test.pdf"));
+            ////IronPdf.License.LicenseKey = "IRONP........020";
 
-            var fileContents = System.IO.File.ReadAllBytes(filePath);
+            var fileContents = System.IO.File.ReadAllBytes(inputFilePath);
             var fileStream = new System.IO.MemoryStream(fileContents);
 
             var pdfDoc = new PdfDocument(fileStream);
 
-            var valueToWatermark = "2020-07-28";
-            IronPdf.License.LicenseKey = licenseKey;
-            IronPdf.HtmlToPdf Renderer = new IronPdf.HtmlToPdf();
-            Renderer.PrintOptions.InputEncoding = System.Text.Encoding.UTF8;
+            var outputFilePath = Path.Combine(rootFolder, Guid.NewGuid() + "-*.jpg");
 
-            try
-            {
-                pdfDoc.WatermarkAllPages($"<h3 style='padding-top:10px; font-family: Arial, sans-serif;'>#{valueToWatermark}</h2>", PdfDocument.WaterMarkLocation.TopRight, 100, 0);
-            }
-            catch (System.Exception e)
-            {
-                throw e;
-            }            
+            // Throws a "Exception of type 'System.ExecutionEngineException' was thrown." with no details. Sometimes this works and generates images.
+            var outputImages = pdfDoc.RasterizeToImageFiles(outputFilePath, ImageType.Jpeg);
 
             return View();
         }
